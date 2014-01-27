@@ -55,8 +55,7 @@ quad_sum(Iterator begin, Iterator end)
 	return sum1 + handle1.get() + handle2.get() + handle3.get();
 }
 
-
-int main(void)
+void test_async(void)
 {
 	//std::vector<unsigned int> v(1000000000, 1);	// 4 GBytes
 	std::vector<unsigned short> v(2000000000, 0);	// 4 GBytes
@@ -78,4 +77,39 @@ int main(void)
 	//sum = parallel_sum_bad(v.cbegin(), v.cend());
 	//t1 = tbb::tick_count::now();
 	//std::cout << "parallel sum = " << sum << " took " << (t1 - t0).seconds() << " seconds." << std::endl;
+}
+
+void test_wait_for(void)
+{
+	auto future = std::async(std::launch::async, [](){ std::this_thread::sleep_for(std::chrono::seconds(3)); return 8; });
+	std::cout << "waiting" << std::endl;
+	std::future_status status;
+	do
+	{
+		status = future.wait_for(std::chrono::seconds(1));
+		switch (status)
+		{
+		case std::future_status::deferred:
+			std::cout << "deferred" << std::endl;
+			break;
+		case std::future_status::timeout:
+			std::cout << "time out" << std::endl;
+			break;
+		case std::future_status::ready:
+			std::cout << "ready" << std::endl;
+			break;
+		}
+	} while (status != std::future_status::ready);
+	std::cout << "result is " << future.get() << std::endl;
+}
+
+void test_wait_until(void)
+{
+
+}
+
+int main(void)
+{
+	//test_async();
+	test_wait_for();
 }
