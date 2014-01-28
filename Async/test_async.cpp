@@ -105,11 +105,32 @@ void test_wait_for(void)
 
 void test_wait_until(void)
 {
-
+	auto future = std::async(std::launch::async, [](){ std::this_thread::sleep_for(std::chrono::seconds(3)); return 8; });
+	std::cout << "waiting" << std::endl;
+	std::future_status status;
+	do
+	{
+		const auto wakeup_time = std::chrono::system_clock::now() + std::chrono::seconds(1);
+		status = future.wait_until(wakeup_time);
+		switch (status)
+		{
+		case std::future_status::deferred:
+			std::cout << "deferred" << std::endl;
+			break;
+		case std::future_status::timeout:
+			std::cout << "time out" << std::endl;
+			break;
+		case std::future_status::ready:
+			std::cout << "ready" << std::endl;
+			break;
+		}
+	} while (status != std::future_status::ready);
+	std::cout << "result is " << future.get() << std::endl;
 }
 
 int main(void)
 {
 	//test_async();
-	test_wait_for();
+	//test_wait_for();
+	test_wait_until();
 }
